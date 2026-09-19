@@ -12,6 +12,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <!-- Canvas Confetti CDN -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- html2canvas CDN for PNG image export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap');
         * {
@@ -60,7 +62,7 @@
                     校園規律獵人
                 </h1>
                 <span class="text-xs font-black bg-emerald-800 text-emerald-200 px-2.5 py-1 rounded-full shadow-inner tracking-wide">
-                    v1.2.1
+                    v1.4.0
                 </span>
             </div>
         </div>
@@ -74,7 +76,9 @@
 
             <!-- 2. Fullscreen Toggle Button -->
             <button id="btn-fullscreen" class="touch-btn bg-emerald-500 hover:bg-emerald-400 p-3 rounded-2xl shadow-md border-2 border-emerald-300 text-white focus:outline-none" title="全螢幕切換">
-                <i data-lucide="maximize" class="w-6 h-6 stroke-[2.5]" id="icon-fullscreen"></i>
+                <span id="icon-fs-wrapper" class="flex items-center justify-center">
+                    <i data-lucide="maximize" class="w-6 h-6 stroke-[2.5]"></i>
+                </span>
             </button>
 
             <!-- 3. Course Design Guide Button -->
@@ -88,16 +92,13 @@
 <!-- Main Container -->
 <main class="max-w-7xl mx-auto w-full p-3 md:p-6 flex-1 flex flex-col gap-6">
 
-    <!-- Activity Tabs Navigation Bar -->
-    <nav class="grid grid-cols-2 md:grid-cols-4 gap-2.5 bg-white p-2 rounded-3xl shadow-sm border border-slate-200">
+    <!-- Activity Tabs Navigation Bar: 3 Tabs (Activity 1, Activity 2 with 4F, Showcase Wall) -->
+    <nav class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 bg-white p-2 rounded-3xl shadow-sm border border-slate-200">
         <button onclick="switchTab('act1')" id="tab-act1" class="touch-btn py-3.5 px-3 rounded-2xl font-black text-sm md:text-base flex items-center justify-center gap-2 bg-emerald-600 text-white shadow">
             <span>🚀 活動一：課程導入</span>
         </button>
         <button onclick="switchTab('act2')" id="tab-act2" class="touch-btn py-3.5 px-3 rounded-2xl font-black text-sm md:text-base flex items-center justify-center gap-2 bg-slate-100 text-slate-600 hover:bg-slate-200">
-            <span>🔍 活動二：規律獵人</span>
-        </button>
-        <button onclick="switchTab('act3')" id="tab-act3" class="touch-btn py-3.5 px-3 rounded-2xl font-black text-sm md:text-base flex items-center justify-center gap-2 bg-slate-100 text-slate-600 hover:bg-slate-200">
-            <span>📝 活動三：4F 反思</span>
+            <span>🔍 活動二：規律獵人 (含4F反思)</span>
         </button>
         <button onclick="switchTab('gallery')" id="tab-gallery" class="touch-btn py-3.5 px-3 rounded-2xl font-black text-sm md:text-base flex items-center justify-center gap-2 bg-slate-100 text-slate-600 hover:bg-slate-200">
             <span>🎨 成果展示牆</span>
@@ -220,17 +221,19 @@
             </button>
         </div>
     </section>
-    <!-- SECTION 2: Activity 2 - Campus Pattern Hunter Studio -->
+
+    <!-- SECTION 2: Activity 2 - Campus Pattern Hunter & 4F Reflection Studio -->
     <section id="section-act2" class="space-y-6 hidden">
+        <!-- Workbench Header & Texture Controls -->
         <div class="bg-white rounded-3xl p-5 md:p-6 shadow-sm border border-slate-200 flex flex-wrap items-center justify-between gap-4">
             <div class="flex items-center gap-3">
                 <div class="bg-emerald-100 text-emerald-700 p-2.5 rounded-2xl">
                     <i data-lucide="camera" class="w-6 h-6"></i>
                 </div>
                 <div>
-                    <h2 class="text-xl md:text-2xl font-black text-slate-800">規律分析與數位標記工作台</h2>
+                    <h2 class="text-xl md:text-2xl font-black text-slate-800">規律獵人：影像標記與 4F 深度反思工作台</h2>
                     <p class="text-slate-500 font-bold text-xs md:text-sm">
-                        當前組別：<span id="active-team-badge" class="text-emerald-600 font-black">尚未設定</span>
+                        當前小組：<span id="active-team-badge" class="text-emerald-600 font-black">尚未設定</span>
                     </p>
                 </div>
             </div>
@@ -254,12 +257,12 @@
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            <!-- Canvas Interaction Area (8 cols) -->
-            <div class="lg:col-span-8 flex flex-col gap-3">
+            <!-- Canvas Interaction Area (7 cols on large screens) -->
+            <div class="lg:col-span-7 flex flex-col gap-3">
                 <!-- Geometry Overlay Toolbar -->
                 <div class="bg-slate-900 text-white p-3 rounded-2xl flex items-center justify-between flex-wrap gap-2 text-xs md:text-sm font-bold shadow">
                     <div class="flex items-center gap-2">
-                        <span class="text-slate-400">幾何疊加圖層：</span>
+                        <span class="text-slate-400">幾何疊加：</span>
                         <button onclick="toggleOverlay('symmetry')" id="btn-ov-sym" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700">
                             對稱軸線
                         </button>
@@ -272,12 +275,15 @@
                     </div>
 
                     <div class="flex items-center gap-2">
-                        <span class="text-slate-400">畫筆顏色：</span>
-                        <button onclick="setPenColor('#ef4444')" class="w-6 h-6 rounded-full bg-red-500 border-2 border-white"></button>
-                        <button onclick="setPenColor('#eab308')" class="w-6 h-6 rounded-full bg-yellow-400 border-2 border-white"></button>
-                        <button onclick="setPenColor('#10b981')" class="w-6 h-6 rounded-full bg-emerald-500 border-2 border-white"></button>
-                        <button onclick="setPenColor('#06b6d4')" class="w-6 h-6 rounded-full bg-cyan-400 border-2 border-white"></button>
-                        <button onclick="clearCanvasAnnotations()" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-red-900/40 text-red-300 border border-slate-700 text-xs flex items-center gap-1">
+                        <span class="text-slate-400">標記畫筆：</span>
+                        <button onclick="setPenColor('#ef4444')" class="w-6 h-6 rounded-full bg-red-500 border-2 border-white touch-btn" title="紅色"></button>
+                        <button onclick="setPenColor('#eab308')" class="w-6 h-6 rounded-full bg-yellow-400 border-2 border-white touch-btn" title="黃色"></button>
+                        <button onclick="setPenColor('#10b981')" class="w-6 h-6 rounded-full bg-emerald-500 border-2 border-white touch-btn" title="綠色"></button>
+                        <button onclick="setPenColor('#06b6d4')" class="w-6 h-6 rounded-full bg-cyan-400 border-2 border-white touch-btn" title="青色"></button>
+                        <button onclick="undoLastStroke()" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-xs flex items-center gap-1 touch-btn" title="復原上一筆">
+                            <i data-lucide="undo-2" class="w-3.5 h-3.5"></i> 復原
+                        </button>
+                        <button onclick="clearCanvasAnnotations()" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-red-900/40 text-red-300 border border-slate-700 text-xs flex items-center gap-1 touch-btn">
                             <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> 清除線條
                         </button>
                     </div>
@@ -298,152 +304,137 @@
                 </div>
             </div>
 
-            <!-- Mathematical Description & Publish Panel (4 cols) -->
-            <div class="lg:col-span-4 bg-white rounded-3xl p-6 shadow-sm border border-slate-200 flex flex-col justify-between gap-5">
-                <div class="space-y-4">
-                    <div class="flex items-center gap-2 border-b-2 border-slate-100 pb-3">
-                        <i data-lucide="file-text" class="w-5 h-5 text-emerald-600"></i>
-                        <h3 class="text-lg font-black text-slate-800">擬定數學特徵描述</h3>
+            <!-- Direct 4F Guided Reflection & Narrative Panel (5 cols) -->
+            <div class="lg:col-span-5 bg-white rounded-3xl p-5 md:p-6 shadow-sm border border-slate-200 flex flex-col justify-between gap-5">
+                <div class="space-y-4 max-h-[600px] overflow-y-auto pr-1">
+                    <div class="flex items-center justify-between border-b-2 border-slate-100 pb-3">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="sparkles" class="w-5 h-5 text-emerald-600"></i>
+                            <h3 class="text-lg font-black text-slate-800">4F 數感反思與特徵描述</h3>
+                        </div>
+                        <span class="text-xs font-bold text-slate-400">小學五年級數感模組</span>
                     </div>
 
-                    <!-- Rule Category -->
-                    <div class="space-y-1.5">
-                        <label class="text-xs font-black text-slate-500 uppercase">規律數學類型</label>
-                        <select id="pattern-type-select" class="w-full px-4 py-3 rounded-2xl border-2 border-slate-200 bg-slate-50 font-bold text-slate-700 focus:outline-none focus:border-emerald-500 text-sm">
-                            <option value="幾何密鋪與平移 (Tessellation & Translation)">幾何密鋪與平移（地磚、格網）</option>
-                            <option value="線對稱與軸反射 (Reflection & Symmetry)">線對稱與軸反射（門窗、落葉）</option>
-                            <option value="旋轉對稱與斐波那契螺旋 (Rotational & Spiral)">旋轉對稱與螺旋（松果、向日葵）</option>
-                            <option value="等距平行排列 (Parallel Spacing)">等距平行排列（欄杆、樓梯踏階）</option>
-                        </select>
+                    <!-- Metadata row: Pattern Type & Location -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div class="space-y-1">
+                            <label class="text-xs font-black text-slate-500 uppercase">規律數學類型</label>
+                            <select id="pattern-type-select" class="w-full px-3 py-2.5 rounded-xl border-2 border-slate-200 bg-slate-50 font-bold text-slate-700 focus:outline-none focus:border-emerald-500 text-xs md:text-sm">
+                                <option value="幾何密鋪與平移 (Tessellation)">幾何密鋪與平移（地磚、網格）</option>
+                                <option value="線對稱與軸反射 (Reflection)">線對稱與軸反射（門窗、落葉）</option>
+                                <option value="旋轉對稱與螺旋 (Spiral)">旋轉對稱與螺旋（松果、花卉）</option>
+                                <option value="等距平行排列 (Parallel)">等距平行排列（欄杆、階梯）</option>
+                            </select>
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-xs font-black text-slate-500 uppercase">校園發現地點</label>
+                            <input type="text" id="pattern-location" placeholder="例如：川堂地磚、中庭花圃" 
+                                class="w-full px-3 py-2.5 rounded-xl border-2 border-slate-200 bg-slate-50 font-bold text-slate-700 focus:outline-none focus:border-emerald-500 text-xs md:text-sm">
+                        </div>
                     </div>
 
-                    <!-- One-sentence Narrative -->
-                    <div class="space-y-1.5">
-                        <label class="text-xs font-black text-slate-500 uppercase">精準數學特徵描述（一句話數位敘事）</label>
-                        <textarea id="pattern-narrative" rows="4" 
-                            placeholder="例如：操場紅綠地磚以正六邊形緊密密鋪，沒有任何縫隙，呈現二維平移與旋轉對稱規律。" 
-                            class="w-full p-4 rounded-2xl border-2 border-slate-200 bg-slate-50 font-bold text-slate-700 focus:outline-none focus:border-emerald-500 text-sm leading-relaxed"></textarea>
+                    <!-- 1. Facts -->
+                    <div class="space-y-1 bg-emerald-50/50 p-3.5 rounded-2xl border border-emerald-100">
+                        <label class="text-xs font-black text-emerald-800 flex items-center gap-1.5">
+                            <span class="w-5 h-5 rounded-md bg-emerald-600 text-white flex items-center justify-center text-[10px]">1</span>
+                            <span>[Facts] 事實發現：幾何單元與規律特徵</span>
+                        </label>
+                        <textarea id="rf-facts" rows="2" 
+                            placeholder="請具體寫下你在校園中捕捉到的幾何重複單元與排列特徵..." 
+                            class="w-full p-2.5 rounded-xl border-2 border-slate-200 bg-white font-bold text-slate-700 focus:outline-none focus:border-emerald-500 text-xs md:text-sm leading-relaxed"></textarea>
                     </div>
 
-                    <!-- Observation Location -->
-                    <div class="space-y-1.5">
-                        <label class="text-xs font-black text-slate-500 uppercase">校園發現地點</label>
-                        <input type="text" id="pattern-location" placeholder="例如：迎曦樓川堂、操場跑道外緣" 
-                            class="w-full px-4 py-3 rounded-2xl border-2 border-slate-200 bg-slate-50 font-bold text-slate-700 focus:outline-none focus:border-emerald-500 text-sm">
+                    <!-- 2. Feelings -->
+                    <div class="space-y-1 bg-amber-50/50 p-3.5 rounded-2xl border border-amber-100">
+                        <label class="text-xs font-black text-amber-800 flex items-center gap-1.5">
+                            <span class="w-5 h-5 rounded-md bg-amber-600 text-white flex items-center justify-center text-[10px]">2</span>
+                            <span>[Feelings] 感受體驗：小組取景與合作</span>
+                        </label>
+                        <textarea id="rf-feelings" rows="2" 
+                            placeholder="在小組討論最佳拍攝視角、垂直俯拍與手繪標記時，你們有什麼感受？" 
+                            class="w-full p-2.5 rounded-xl border-2 border-slate-200 bg-white font-bold text-slate-700 focus:outline-none focus:border-amber-500 text-xs md:text-sm leading-relaxed"></textarea>
+                    </div>
+
+                    <!-- 3. Findings -->
+                    <div class="space-y-1 bg-sky-50/50 p-3.5 rounded-2xl border border-sky-100">
+                        <label class="text-xs font-black text-sky-800 flex items-center gap-1.5">
+                            <span class="w-5 h-5 rounded-md bg-sky-600 text-white flex items-center justify-center text-[10px]">3</span>
+                            <span>[Findings] 數感洞察：生活中的數學規律</span>
+                        </label>
+                        <textarea id="rf-findings" rows="2" 
+                            placeholder="透過這次獵人活動，你發現物體排列背後隱藏了哪些幾何原理？" 
+                            class="w-full p-2.5 rounded-xl border-2 border-slate-200 bg-white font-bold text-slate-700 focus:outline-none focus:border-sky-500 text-xs md:text-sm leading-relaxed"></textarea>
+                    </div>
+
+                    <!-- 4. Future -->
+                    <div class="space-y-1 bg-indigo-50/50 p-3.5 rounded-2xl border border-indigo-100">
+                        <label class="text-xs font-black text-indigo-800 flex items-center gap-1.5">
+                            <span class="w-5 h-5 rounded-md bg-indigo-600 text-white flex items-center justify-center text-[10px]">4</span>
+                            <span>[Future] 未來運用：日常生活的規律遷移</span>
+                        </label>
+                        <textarea id="rf-future" rows="2" 
+                            placeholder="回到家後或在校園其他角落，你會想在哪裡繼續尋找隱藏的數學規律？" 
+                            class="w-full p-2.5 rounded-xl border-2 border-slate-200 bg-white font-bold text-slate-700 focus:outline-none focus:border-indigo-500 text-xs md:text-sm leading-relaxed"></textarea>
                     </div>
                 </div>
 
                 <!-- Publish Button -->
-                <button onclick="publishWorkToGallery()" class="touch-btn w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black py-4 rounded-2xl shadow-lg flex items-center justify-center gap-2 text-base">
+                <button onclick="publishWorkToGallery()" class="touch-btn w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black py-3.5 md:py-4 rounded-2xl shadow-lg flex items-center justify-center gap-2 text-base">
                     <i data-lucide="share-2" class="w-5 h-5"></i>
-                    <span>發布至成果展示牆</span>
+                    <span>發布成果至展示牆 (含 4F 反思)</span>
                 </button>
             </div>
         </div>
     </section>
-    <!-- SECTION 3: Activity 3 - 4F Guided Reflection Notebook -->
-    <section id="section-act3" class="space-y-6 hidden">
-        <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-200">
-            <div class="flex items-center gap-3">
-                <div class="bg-sky-100 text-sky-700 p-2.5 rounded-2xl font-black">
-                    <i data-lucide="edit-3" class="w-6 h-6"></i>
-                </div>
-                <div>
-                    <h2 class="text-xl md:text-2xl font-black text-slate-800">4F 引導反思筆記</h2>
-                    <p class="text-slate-500 font-bold text-xs md:text-sm">運用 4F 反思架構回顧探究歷程，深化數學與生活的連結。</p>
-                </div>
-            </div>
-        </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <!-- 1. Facts -->
-            <div class="bg-white rounded-3xl p-6 shadow-sm border-2 border-emerald-100 space-y-3">
-                <div class="flex items-center gap-2.5 text-emerald-700">
-                    <span class="w-8 h-8 rounded-xl bg-emerald-100 flex items-center justify-center font-black text-base">1</span>
-                    <h3 class="text-lg font-black">[Facts] 事實觀察</h3>
-                </div>
-                <p class="text-xs font-bold text-slate-500">今天我們在校園中捕捉到了哪些有趣的重複性規律或數學跡象？</p>
-                <textarea id="rf-facts" rows="4" class="w-full p-4 rounded-2xl border-2 border-slate-200 bg-slate-50 font-bold text-slate-700 focus:outline-none focus:border-emerald-500 text-sm leading-relaxed"></textarea>
-            </div>
-
-            <!-- 2. Feelings -->
-            <div class="bg-white rounded-3xl p-6 shadow-sm border-2 border-amber-100 space-y-3">
-                <div class="flex items-center gap-2.5 text-amber-700">
-                    <span class="w-8 h-8 rounded-xl bg-amber-100 flex items-center justify-center font-black text-base">2</span>
-                    <h3 class="text-lg font-black">[Feelings] 感受體驗</h3>
-                </div>
-                <p class="text-xs font-bold text-slate-500">在小組共同合作與操作數位工具尋找規律的過程中，你感到最挑戰或最有趣的是什麼？</p>
-                <textarea id="rf-feelings" rows="4" class="w-full p-4 rounded-2xl border-2 border-slate-200 bg-slate-50 font-bold text-slate-700 focus:outline-none focus:border-amber-500 text-sm leading-relaxed"></textarea>
-            </div>
-
-            <!-- 3. Findings -->
-            <div class="bg-white rounded-3xl p-6 shadow-sm border-2 border-sky-100 space-y-3">
-                <div class="flex items-center gap-2.5 text-sky-700">
-                    <span class="w-8 h-8 rounded-xl bg-sky-100 flex items-center justify-center font-black text-base">3</span>
-                    <h3 class="text-lg font-black">[Findings] 發現洞察</h3>
-                </div>
-                <p class="text-xs font-bold text-slate-500">透過這次「獵人活動」，你對於「數學就在生活中」這個想法有什麼新的發現？</p>
-                <textarea id="rf-findings" rows="4" class="w-full p-4 rounded-2xl border-2 border-slate-200 bg-slate-50 font-bold text-slate-700 focus:outline-none focus:border-sky-500 text-sm leading-relaxed"></textarea>
-            </div>
-
-            <!-- 4. Future -->
-            <div class="bg-white rounded-3xl p-6 shadow-sm border-2 border-indigo-100 space-y-3">
-                <div class="flex items-center gap-2.5 text-indigo-700">
-                    <span class="w-8 h-8 rounded-xl bg-indigo-100 flex items-center justify-center font-black text-base">4</span>
-                    <h3 class="text-lg font-black">[Future] 未來運用</h3>
-                </div>
-                <p class="text-xs font-bold text-slate-500">回到家後，你會想去家裡的哪個角落尋找可能隱藏的數學規律？</p>
-                <textarea id="rf-future" rows="4" class="w-full p-4 rounded-2xl border-2 border-slate-200 bg-slate-50 font-bold text-slate-700 focus:outline-none focus:border-indigo-500 text-sm leading-relaxed"></textarea>
-            </div>
-        </div>
-
-        <div class="flex justify-end">
-            <button onclick="submitReflection()" class="touch-btn bg-emerald-600 hover:bg-emerald-700 text-white font-black px-8 py-4 rounded-2xl shadow-lg flex items-center gap-2 text-base">
-                <i data-lucide="check-circle" class="w-5 h-5"></i>
-                <span>提交 4F 反思日誌</span>
-            </button>
-        </div>
-    </section>
-    <!-- SECTION 4: Class Gallery -->
+    <!-- SECTION 3: Class Gallery with PNG Image Export -->
     <section id="section-gallery" class="space-y-6 hidden">
-        <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-200 flex flex-wrap items-center justify-between gap-4">
+        <div class="bg-white rounded-3xl p-5 md:p-6 shadow-sm border border-slate-200 flex flex-wrap items-center justify-between gap-4">
             <div class="flex items-center gap-3">
                 <div class="bg-amber-100 text-amber-700 p-2.5 rounded-2xl">
                     <i data-lucide="layout-grid" class="w-6 h-6"></i>
                 </div>
                 <div>
                     <h2 class="text-xl md:text-2xl font-black text-slate-800">全班成果展示牆</h2>
-                    <p class="text-slate-500 font-bold text-xs md:text-sm">即時呈現各組規律照片與 4F 反思筆記，自由觀摩交流。</p>
+                    <p class="text-slate-500 font-bold text-xs md:text-sm">
+                        即時呈現各組規律照片標記與 4F 反思成果，支援同儕點讚與高畫質圖片匯出。
+                    </p>
                 </div>
             </div>
 
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-2.5 flex-wrap">
                 <select id="gallery-filter-select" onchange="changeGalleryFilter(this.value)" class="px-4 py-2.5 rounded-xl border-2 border-slate-200 bg-slate-50 font-bold text-sm text-slate-700 focus:outline-none">
-                    <option value="all">顯示全部成果</option>
-                    <option value="photos">僅顯示規律照片</option>
-                    <option value="reflections">僅顯示 4F 反思</option>
+                    <option value="all">顯示全部規律類型</option>
+                    <option value="幾何密鋪與平移">僅看密鋪與平移</option>
+                    <option value="線對稱與軸反射">僅看線對稱與軸反射</option>
+                    <option value="旋轉對稱與螺旋">僅看旋轉與螺旋</option>
+                    <option value="等距平行排列">僅看等距平行排列</option>
                 </select>
-                <button onclick="exportLearningRecordsCSV()" class="touch-btn bg-sky-600 hover:bg-sky-700 text-white font-black px-4 py-2.5 rounded-xl shadow text-sm flex items-center gap-2">
-                    <i data-lucide="download" class="w-4 h-4"></i>
-                    <span>匯出學習歷程 CSV</span>
+                <!-- PNG Image Export Button -->
+                <button onclick="exportGalleryAsImage()" class="touch-btn bg-sky-600 hover:bg-sky-700 text-white font-black px-4 py-2.5 rounded-xl shadow text-sm flex items-center gap-2">
+                    <i data-lucide="image" class="w-4 h-4"></i>
+                    <span>匯出成果圖檔 (PNG)</span>
                 </button>
             </div>
         </div>
 
-        <!-- Gallery Grid Display -->
-        <div id="gallery-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <!-- Dynamic elements will be rendered here -->
-        </div>
-
-        <!-- Empty State Container -->
-        <div id="gallery-empty-state" class="bg-white rounded-3xl p-12 text-center border-2 border-dashed border-slate-200 space-y-4">
-            <div class="w-16 h-16 rounded-3xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
-                <i data-lucide="inbox" class="w-8 h-8"></i>
+        <!-- Exportable Container Area for PNG Generation -->
+        <div id="gallery-export-container" class="bg-slate-100/60 p-2 md:p-4 rounded-3xl">
+            <!-- Gallery Grid Display -->
+            <div id="gallery-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Dynamic cards with 4F reflections will be rendered here -->
             </div>
-            <h3 class="text-lg font-black text-slate-700">目前尚無展示作品</h3>
-            <p class="text-slate-400 font-bold text-sm max-w-sm mx-auto">
-                請前往「活動二：規律獵人」標記並發布照片，或在「活動三」撰寫 4F 反思，作品將即時於此處公開呈現！
-            </p>
+
+            <!-- Empty State Container -->
+            <div id="gallery-empty-state" class="bg-white rounded-3xl p-12 text-center border-2 border-dashed border-slate-200 space-y-4">
+                <div class="w-16 h-16 rounded-3xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
+                    <i data-lucide="inbox" class="w-8 h-8"></i>
+                </div>
+                <h3 class="text-lg font-black text-slate-700">目前尚無展示作品</h3>
+                <p class="text-slate-400 font-bold text-sm max-w-sm mx-auto">
+                    請前往「活動二：規律獵人」標記相片並撰寫 4F 思考反思，發布後成果將即時於此處公開呈現！
+                </p>
+            </div>
         </div>
     </section>
 
@@ -517,10 +508,9 @@
                 </h4>
                 <ol class="list-decimal list-inside space-y-2 text-xs md:text-sm text-slate-700 bg-white p-4 rounded-xl border border-sky-100">
                     <li><strong class="text-sky-700">頂部功能圖示列：</strong>由左至右依序為 ① QR Code 掃碼分享（支援 iPad 相機直接掃碼或一鍵複製網址）、② 全螢幕切換（放大視野防誤觸）、③ 課程設計說明（本手冊）。</li>
-                    <li><strong class="text-sky-700">活動一（課程導入）：</strong>設定組別名稱，研讀「不拍人臉、垂直對齊、充足採光」規範並勾選隱私承諾，操作視角模擬器解鎖任務。</li>
-                    <li><strong class="text-sky-700">活動二（規律獵人）：</strong>上傳現場照片或點選預設紋理，選擇軸對稱、網格或螺旋輔助圖層，以手繪標記規律並撰寫數學特徵敘事，發布至展示牆。</li>
-                    <li><strong class="text-sky-700">活動三（4F 反思筆記）：</strong>依據 Facts（事實）、Feelings（感受）、Findings（發現）、Future（運用）四層次記錄探究歷程，提交展示。</li>
-                    <li><strong class="text-sky-700">成果展示牆：</strong>即時陳列全班作品與反思日誌，支援即時篩選、愛心點讚，並可隨時一鍵匯出全班 CSV 總表。</li>
+                    <li><strong class="text-sky-700">活動一（課程導入）：</strong>設定組別名稱，研讀「不拍人臉、垂直對齊、充足採光」規範並勾選隱私承諾，操作視角模擬器體驗垂直正拍的重要性。</li>
+                    <li><strong class="text-sky-700">活動二（規律獵人與 4F 反思）：</strong>上傳校園照片或點選示範紋理，透過對稱軸、網格、螺旋圖層與彩色畫筆標記幾何規律，直接結合 Facts、Feelings、Findings、Future 四面向撰寫深度反思，一鍵發布至展示牆。</li>
+                    <li><strong class="text-sky-700">成果展示牆：</strong>即時呈現全班的幾何標記影像與完整 4F 探究歷程，支援同儕點讚觀摩，並可隨時點選「匯出成果圖檔 (PNG)」完整保存高畫質圖片。</li>
                 </ol>
             </div>
 
@@ -573,15 +563,13 @@
 <script>
 /**
  * Campus Pattern Hunter - State and Application Engine
- * Version: v1.2.1
+ * Version: v1.4.0 (Fully Debugged & Hardened)
  */
 
-// Application State
 const appState = {
     activeTeam: "",
     privacyAgreed: false,
-    works: [],
-    reflections: [],
+    works: [], // Each work incorporates annotated photo + complete 4F reflection
     galleryFilter: 'all',
     canvas: {
         bgImage: null,
@@ -591,17 +579,16 @@ const appState = {
         lastX: 0,
         lastY: 0,
         overlay: null, // 'symmetry', 'grid', 'spiral'
-        history: []
+        strokes: [], // Array of { color, width, points: [{x, y}] }
+        currentStroke: null
     }
 };
 
 // Canvas context reference
 let mainCanvas, ctx;
 
-
-// Switch Tabs
 function switchTab(tabId) {
-    const tabs = ['act1', 'act2', 'act3', 'gallery'];
+    const tabs = ['act1', 'act2', 'gallery'];
     tabs.forEach(t => {
         const sec = document.getElementById(`section-${t}`);
         const btn = document.getElementById(`tab-${t}`);
@@ -626,26 +613,25 @@ function switchTab(tabId) {
     }
 }
 
-// Save Team Name
 function saveTeamName() {
     const input = document.getElementById('team-name-input');
-    const val = input.value.trim();
+    const val = input ? input.value.trim() : '';
     if (!val) {
         showToast("請先輸入小組名稱！", "alert-circle");
         return;
     }
     appState.activeTeam = val;
-    document.getElementById('active-team-badge').textContent = val;
+    const badge = document.getElementById('active-team-badge');
+    if (badge) badge.textContent = val;
     showToast(`已儲存組別：${val}`, "check");
 }
 
-// Angle simulator handler
 function handleAngleSlider(val) {
     const grid = document.getElementById('perspective-grid');
     const display = document.getElementById('angle-val-display');
     const tip = document.getElementById('perspective-tip');
     
-    if (grid) grid.style.transform = `perspective(300px) rotateX(${val}deg)`;
+    if (grid) grid.style.transform = `perspective(400px) rotateX(${val}deg)`;
     if (display) {
         if (parseInt(val) === 0) {
             display.textContent = '0°（完美正拍）';
@@ -659,12 +645,10 @@ function handleAngleSlider(val) {
     }
 }
 
-// Toggle privacy checkbox
 function togglePrivacyAgreement(checked) {
     appState.privacyAgreed = checked;
 }
 
-// Start mission button
 function startMission() {
     if (!appState.privacyAgreed) {
         showToast("請先勾選數位公民隱私承諾！", "alert-circle");
@@ -677,103 +661,133 @@ function startMission() {
     switchTab('act2');
 }
 
-
-// Initialize Canvas
 function initCanvas() {
     mainCanvas = document.getElementById('main-canvas');
     if (!mainCanvas) return;
     ctx = mainCanvas.getContext('2d');
 
-    // Resize handling
     resizeCanvas();
     window.addEventListener('resize', () => {
         resizeCanvas();
         redrawCanvas();
     });
 
-    // Pointer events
-    mainCanvas.addEventListener('mousedown', startDrawing);
-    mainCanvas.addEventListener('mousemove', draw);
-    mainCanvas.addEventListener('mouseup', stopDrawing);
-    mainCanvas.addEventListener('mouseout', stopDrawing);
+    // Desktop pointer listeners
+    mainCanvas.addEventListener('mousedown', (e) => {
+        const coords = getCanvasCoords(e.clientX, e.clientY);
+        startStroke(coords.x, coords.y);
+    });
+    mainCanvas.addEventListener('mousemove', (e) => {
+        if (!appState.canvas.isDrawing) return;
+        const coords = getCanvasCoords(e.clientX, e.clientY);
+        continueStroke(coords.x, coords.y);
+    });
+    mainCanvas.addEventListener('mouseup', endStroke);
+    mainCanvas.addEventListener('mouseleave', endStroke);
 
-    // Touch events for iPad
+    // iPad touch listeners with accurate coordinate mapping
     mainCanvas.addEventListener('touchstart', (e) => {
         e.preventDefault();
         const touch = e.touches[0];
-        const rect = mainCanvas.getBoundingClientRect();
-        appState.canvas.isDrawing = true;
-        appState.canvas.lastX = touch.clientX - rect.left;
-        appState.canvas.lastY = touch.clientY - rect.top;
+        const coords = getCanvasCoords(touch.clientX, touch.clientY);
+        startStroke(coords.x, coords.y);
     }, { passive: false });
 
     mainCanvas.addEventListener('touchmove', (e) => {
         e.preventDefault();
         if (!appState.canvas.isDrawing) return;
         const touch = e.touches[0];
-        const rect = mainCanvas.getBoundingClientRect();
-        const x = touch.clientX - rect.left;
-        const y = touch.clientY - rect.top;
-        drawStroke(appState.canvas.lastX, appState.canvas.lastY, x, y);
-        appState.canvas.lastX = x;
-        appState.canvas.lastY = y;
+        const coords = getCanvasCoords(touch.clientX, touch.clientY);
+        continueStroke(coords.x, coords.y);
     }, { passive: false });
 
-    mainCanvas.addEventListener('touchend', () => {
-        appState.canvas.isDrawing = false;
-    });
+    mainCanvas.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        endStroke();
+    }, { passive: false });
+}
+
+function getCanvasCoords(clientX, clientY) {
+    const rect = mainCanvas.getBoundingClientRect();
+    const scaleX = mainCanvas.width / (rect.width || 1);
+    const scaleY = mainCanvas.height / (rect.height || 1);
+    return {
+        x: (clientX - rect.left) * scaleX,
+        y: (clientY - rect.top) * scaleY
+    };
 }
 
 function resizeCanvas() {
     if (!mainCanvas) return;
     const parent = mainCanvas.parentElement;
     if (parent) {
-        mainCanvas.width = parent.clientWidth;
-        mainCanvas.height = parent.clientHeight;
+        const rect = parent.getBoundingClientRect();
+        if (rect.width > 0 && rect.height > 0) {
+            mainCanvas.width = rect.width;
+            mainCanvas.height = rect.height;
+        }
     }
 }
 
-function startDrawing(e) {
+function startStroke(x, y) {
     appState.canvas.isDrawing = true;
-    appState.canvas.lastX = e.offsetX;
-    appState.canvas.lastY = e.offsetY;
+    appState.canvas.currentStroke = {
+        color: appState.canvas.penColor,
+        width: appState.canvas.penWidth,
+        points: [{ x, y }]
+    };
 }
 
-function draw(e) {
-    if (!appState.canvas.isDrawing) return;
-    drawStroke(appState.canvas.lastX, appState.canvas.lastY, e.offsetX, e.offsetY);
-    appState.canvas.lastX = e.offsetX;
-    appState.canvas.lastY = e.offsetY;
-}
+function continueStroke(x, y) {
+    if (!appState.canvas.isDrawing || !appState.canvas.currentStroke) return;
+    const pts = appState.canvas.currentStroke.points;
+    const last = pts[pts.length - 1];
 
-function stopDrawing() {
-    appState.canvas.isDrawing = false;
-}
-
-function drawStroke(x1, y1, x2, y2) {
-    if (!ctx) return;
     ctx.beginPath();
-    ctx.strokeStyle = appState.canvas.penColor;
-    ctx.lineWidth = appState.canvas.penWidth;
+    ctx.strokeStyle = appState.canvas.currentStroke.color;
+    ctx.lineWidth = appState.canvas.currentStroke.width;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
     ctx.setLineDash([]);
-    ctx.moveTo(x1, y1);
-    ctx.lineTo(x2, y2);
+    ctx.moveTo(last.x, last.y);
+    ctx.lineTo(x, y);
     ctx.stroke();
+
+    pts.push({ x, y });
+}
+
+function endStroke() {
+    if (!appState.canvas.isDrawing) return;
+    appState.canvas.isDrawing = false;
+    if (appState.canvas.currentStroke && appState.canvas.currentStroke.points.length > 0) {
+        appState.canvas.strokes.push(appState.canvas.currentStroke);
+    }
+    appState.canvas.currentStroke = null;
+}
+
+function undoLastStroke() {
+    if (appState.canvas.strokes.length === 0) {
+        showToast("已無手繪線條可復原", "alert-circle");
+        return;
+    }
+    appState.canvas.strokes.pop();
+    redrawCanvas();
+    showToast("已復原上一筆標記", "undo-2");
+}
+
+function clearCanvasAnnotations() {
+    appState.canvas.strokes = [];
+    redrawCanvas();
+    showToast("已清除所有手繪線條", "rotate-ccw");
 }
 
 function setPenColor(color) {
     appState.canvas.penColor = color;
-    showToast("已切換畫筆顏色", "check");
+    showToast("已切換標記顏色", "check");
 }
 
 function toggleOverlay(type) {
-    if (appState.canvas.overlay === type) {
-        appState.canvas.overlay = null;
-    } else {
-        appState.canvas.overlay = type;
-    }
+    appState.canvas.overlay = (appState.canvas.overlay === type) ? null : type;
     updateOverlayButtons();
     redrawCanvas();
 }
@@ -785,9 +799,9 @@ function updateOverlayButtons() {
         const btn = document.getElementById(`btn-ov-${t}`);
         if (btn) {
             if (appState.canvas.overlay === map[t]) {
-                btn.className = 'px-3 py-1.5 rounded-xl bg-emerald-600 text-white font-black border border-emerald-400';
+                btn.className = 'px-3 py-1.5 rounded-xl bg-emerald-600 text-white font-black border border-emerald-400 touch-btn';
             } else {
-                btn.className = 'px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700';
+                btn.className = 'px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 touch-btn';
             }
         }
     });
@@ -797,7 +811,7 @@ function redrawCanvas() {
     if (!ctx || !mainCanvas) return;
     ctx.clearRect(0, 0, mainCanvas.width, mainCanvas.height);
 
-    // Draw background image if loaded
+    // 1. Draw Background Image
     if (appState.canvas.bgImage) {
         const img = appState.canvas.bgImage;
         const hRatio = mainCanvas.width / img.width;
@@ -809,31 +823,29 @@ function redrawCanvas() {
             centerShiftX, centerShiftY, img.width * ratio, img.height * ratio);
     }
 
-    // Render Geometric Overlays
+    // 2. Draw Geometric Overlays
     const w = mainCanvas.width;
     const h = mainCanvas.height;
 
     if (appState.canvas.overlay === 'symmetry') {
-        // Vertical symmetry axis
         ctx.save();
         ctx.strokeStyle = '#38bdf8';
         ctx.lineWidth = 3;
         ctx.setLineDash([8, 8]);
+        // Vertical axis
         ctx.beginPath();
         ctx.moveTo(w / 2, 0);
         ctx.lineTo(w / 2, h);
         ctx.stroke();
-
-        // Horizontal symmetry axis
+        // Horizontal axis
         ctx.beginPath();
         ctx.moveTo(0, h / 2);
         ctx.lineTo(w, h / 2);
         ctx.stroke();
         ctx.restore();
     } else if (appState.canvas.overlay === 'grid') {
-        // Tessellation Grid
         ctx.save();
-        ctx.strokeStyle = 'rgba(234, 179, 8, 0.4)';
+        ctx.strokeStyle = 'rgba(234, 179, 8, 0.55)';
         ctx.lineWidth = 2;
         ctx.setLineDash([4, 4]);
         const step = 40;
@@ -851,7 +863,6 @@ function redrawCanvas() {
         }
         ctx.restore();
     } else if (appState.canvas.overlay === 'spiral') {
-        // Golden Spiral Approximation
         ctx.save();
         ctx.strokeStyle = '#ec4899';
         ctx.lineWidth = 3;
@@ -869,13 +880,25 @@ function redrawCanvas() {
         ctx.stroke();
         ctx.restore();
     }
-}
 
-function clearCanvasAnnotations() {
-    redrawCanvas();
-    showToast("已清除所有手繪線條", "rotate-ccw");
+    // 3. Persistent Hand-Drawn Strokes
+    ctx.save();
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.setLineDash([]);
+    appState.canvas.strokes.forEach(strk => {
+        if (strk.points.length < 2) return;
+        ctx.beginPath();
+        ctx.strokeStyle = strk.color;
+        ctx.lineWidth = strk.width;
+        ctx.moveTo(strk.points[0].x, strk.points[0].y);
+        for (let i = 1; i < strk.points.length; i++) {
+            ctx.lineTo(strk.points[i].x, strk.points[i].y);
+        }
+        ctx.stroke();
+    });
+    ctx.restore();
 }
-
 
 function handleImageUpload(e) {
     const file = e.target.files[0];
@@ -885,6 +908,7 @@ function handleImageUpload(e) {
         const img = new Image();
         img.onload = () => {
             appState.canvas.bgImage = img;
+            appState.canvas.strokes = [];
             const placeholder = document.getElementById('canvas-placeholder-tip');
             if (placeholder) placeholder.classList.add('opacity-0');
             redrawCanvas();
@@ -902,7 +926,6 @@ function loadSamplePattern(type) {
     const tCtx = tempCanvas.getContext('2d');
 
     if (type === 'tiles') {
-        // Brick Tessellation
         tCtx.fillStyle = '#f8fafc';
         tCtx.fillRect(0, 0, 600, 450);
         tCtx.strokeStyle = '#0284c7';
@@ -918,7 +941,6 @@ function loadSamplePattern(type) {
             }
         }
     } else if (type === 'spiral') {
-        // Pinecone / Sunflower Spiral
         tCtx.fillStyle = '#fefce8';
         tCtx.fillRect(0, 0, 600, 450);
         tCtx.fillStyle = '#ca8a04';
@@ -934,7 +956,6 @@ function loadSamplePattern(type) {
             tCtx.fill();
         }
     } else if (type === 'stairs') {
-        // Parallel Stair Steps
         tCtx.fillStyle = '#f1f5f9';
         tCtx.fillRect(0, 0, 600, 450);
         for (let i = 0; i < 10; i++) {
@@ -949,6 +970,7 @@ function loadSamplePattern(type) {
     const img = new Image();
     img.onload = () => {
         appState.canvas.bgImage = img;
+        appState.canvas.strokes = [];
         const placeholder = document.getElementById('canvas-placeholder-tip');
         if (placeholder) placeholder.classList.add('opacity-0');
         redrawCanvas();
@@ -957,15 +979,19 @@ function loadSamplePattern(type) {
     img.src = tempCanvas.toDataURL();
 }
 
-
 function publishWorkToGallery() {
     if (!appState.canvas.bgImage) {
         showToast("請先上傳照片或載入幾何紋理！", "alert-circle");
         return;
     }
-    const narrative = document.getElementById('pattern-narrative').value.trim();
-    if (!narrative) {
-        showToast("請擬定一句數學特徵描述！", "alert-circle");
+
+    const facts = document.getElementById('rf-facts').value.trim();
+    const feelings = document.getElementById('rf-feelings').value.trim();
+    const findings = document.getElementById('rf-findings').value.trim();
+    const future = document.getElementById('rf-future').value.trim();
+
+    if (!facts || !findings) {
+        showToast("請至少填寫 [Facts] 事實發現與 [Findings] 數感洞察！", "alert-circle");
         return;
     }
 
@@ -976,56 +1002,26 @@ function publishWorkToGallery() {
 
     const newWork = {
         id: Date.now(),
-        type: 'photo',
         team: team,
         patternType: patternType,
-        narrative: narrative,
         location: location,
         imageUrl: dataUrl,
+        facts: facts,
+        feelings: feelings || "在小組互助合作中體驗觀察的樂趣。",
+        findings: findings,
+        future: future || "持續留心生活各角落的幾何構造。",
         likes: 0,
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     };
 
     appState.works.unshift(newWork);
+
     if (window.confetti) {
         confetti({ particleCount: 80, spread: 60, origin: { y: 0.7 } });
     }
     showToast("作品已成功發布至展示牆！", "check");
     switchTab('gallery');
 }
-
-function submitReflection() {
-    const facts = document.getElementById('rf-facts').value.trim();
-    const feelings = document.getElementById('rf-feelings').value.trim();
-    const findings = document.getElementById('rf-findings').value.trim();
-    const future = document.getElementById('rf-future').value.trim();
-
-    if (!facts || !feelings || !findings || !future) {
-        showToast("請完整填寫 4F 反思的四個面向！", "alert-circle");
-        return;
-    }
-
-    const team = appState.activeTeam || "未命名獵人小組";
-    const newReflection = {
-        id: Date.now(),
-        type: 'reflection',
-        team: team,
-        facts: facts,
-        feelings: feelings,
-        findings: findings,
-        future: future,
-        likes: 0,
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    };
-
-    appState.reflections.unshift(newReflection);
-    if (window.confetti) {
-        confetti({ particleCount: 80, spread: 60, origin: { y: 0.7 } });
-    }
-    showToast("4F 反思已成功提交！", "check");
-    switchTab('gallery');
-}
-
 
 function changeGalleryFilter(val) {
     appState.galleryFilter = val;
@@ -1037,17 +1033,10 @@ function renderGallery() {
     const empty = document.getElementById('gallery-empty-state');
     if (!grid) return;
 
-    let items = [];
-    if (appState.galleryFilter === 'all') {
-        items = [...appState.works, ...appState.reflections];
-    } else if (appState.galleryFilter === 'photos') {
-        items = [...appState.works];
-    } else if (appState.galleryFilter === 'reflections') {
-        items = [...appState.reflections];
+    let items = [...appState.works];
+    if (appState.galleryFilter !== 'all') {
+        items = items.filter(w => w.patternType.includes(appState.galleryFilter));
     }
-
-    // Sort by id descending (most recent first)
-    items.sort((a, b) => b.id - a.id);
 
     grid.innerHTML = '';
     if (items.length === 0) {
@@ -1059,122 +1048,198 @@ function renderGallery() {
 
     items.forEach(item => {
         const card = document.createElement('div');
-        card.className = "bg-white rounded-3xl overflow-hidden shadow-sm border border-slate-200 flex flex-col justify-between";
+        card.id = `card-${item.id}`;
+        card.className = "bg-white rounded-3xl overflow-hidden shadow-sm border border-slate-200 flex flex-col justify-between hover:shadow-md transition-shadow";
 
-        if (item.type === 'photo') {
-            card.innerHTML = `
-                <div>
-                    <div class="relative aspect-[4/3] bg-slate-900 overflow-hidden">
-                        <img src="${item.imageUrl}" alt="規律照片" class="w-full h-full object-contain">
-                        <span class="absolute top-3 left-3 bg-emerald-600/90 text-white text-xs font-black px-3 py-1 rounded-full backdrop-blur-sm">
-                            ${item.team}
-                        </span>
-                        <span class="absolute bottom-3 right-3 bg-slate-900/80 text-slate-200 text-xs font-bold px-2.5 py-1 rounded-lg">
-                            📍 ${item.location}
-                        </span>
-                    </div>
-                    <div class="p-5 space-y-2">
-                        <div class="text-xs font-black text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg inline-block">
-                            ${item.patternType}
-                        </div>
-                        <p class="text-slate-800 font-bold text-sm leading-relaxed">
-                            "${item.narrative}"
-                        </p>
-                    </div>
+        card.innerHTML = `
+            <div>
+                <!-- Annotated Photo Frame -->
+                <div class="relative aspect-[4/3] bg-slate-900 overflow-hidden">
+                    <img src="${item.imageUrl}" alt="規律照片" class="w-full h-full object-contain">
+                    <span class="absolute top-3 left-3 bg-emerald-600/90 text-white text-xs font-black px-3 py-1 rounded-full backdrop-blur-sm">
+                        ${escapeHtml(item.team)}
+                    </span>
+                    <span class="absolute bottom-3 right-3 bg-slate-900/80 text-slate-200 text-xs font-bold px-2.5 py-1 rounded-lg">
+                        📍 ${escapeHtml(item.location)}
+                    </span>
                 </div>
-                <div class="p-5 pt-0 border-t border-slate-100 flex items-center justify-between mt-3 text-xs font-bold text-slate-400">
-                    <span>${item.time} 發布</span>
-                    <button onclick="likeItem(${item.id}, 'photo')" class="touch-btn flex items-center gap-1.5 text-rose-500 bg-rose-50 px-3 py-1.5 rounded-xl border border-rose-200">
-                        <i data-lucide="heart" class="w-4 h-4 fill-rose-500"></i>
-                        <span>${item.likes}</span>
-                    </button>
-                </div>
-            `;
-        } else {
-            // 4F Reflection Card
-            card.innerHTML = `
-                <div class="p-6 space-y-4">
+
+                <!-- Integrated 4F Reflection & Narrative Body -->
+                <div class="p-5 space-y-3">
                     <div class="flex items-center justify-between">
-                        <span class="bg-sky-100 text-sky-700 text-xs font-black px-3 py-1 rounded-full">
-                            ${item.team}
+                        <span class="text-xs font-black text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg">
+                            ${item.patternType}
                         </span>
-                        <span class="text-xs font-bold text-slate-400">${item.time}</span>
+                        <span class="text-xs font-bold text-slate-400">${item.time} 發布</span>
                     </div>
-                    <h4 class="text-base font-black text-slate-800 flex items-center gap-2">
-                        <span>📝 4F 反思日誌</span>
-                    </h4>
-                    <div class="space-y-2 text-xs font-bold text-slate-600">
-                        <div><strong class="text-emerald-700">[Facts]：</strong>${item.facts}</div>
-                        <div><strong class="text-amber-700">[Feelings]：</strong>${item.feelings}</div>
-                        <div><strong class="text-sky-700">[Findings]：</strong>${item.findings}</div>
-                        <div><strong class="text-indigo-700">[Future]：</strong>${item.future}</div>
+
+                    <!-- 4F Structured Container -->
+                    <div class="space-y-2 text-xs font-bold text-slate-600 bg-slate-50 p-3.5 rounded-2xl border border-slate-100">
+                        <div class="leading-relaxed">
+                            <strong class="text-emerald-700 font-black">[Facts 事實]：</strong>${escapeHtml(item.facts)}
+                        </div>
+                        <div class="leading-relaxed">
+                            <strong class="text-amber-700 font-black">[Feelings 感受]：</strong>${escapeHtml(item.feelings)}
+                        </div>
+                        <div class="leading-relaxed">
+                            <strong class="text-sky-700 font-black">[Findings 發現]：</strong>${escapeHtml(item.findings)}
+                        </div>
+                        <div class="leading-relaxed">
+                            <strong class="text-indigo-700 font-black">[Future 未來]：</strong>${escapeHtml(item.future)}
+                        </div>
                     </div>
                 </div>
-                <div class="p-6 pt-0 border-t border-slate-100 flex items-center justify-end">
-                    <button onclick="likeItem(${item.id}, 'reflection')" class="touch-btn flex items-center gap-1.5 text-rose-500 bg-rose-50 px-3 py-1.5 rounded-xl border border-rose-200 text-xs font-bold">
-                        <i data-lucide="heart" class="w-4 h-4 fill-rose-500"></i>
-                        <span>${item.likes}</span>
-                    </button>
-                </div>
-            `;
-        }
+            </div>
+
+            <!-- Card Bottom Interaction -->
+            <div class="p-5 pt-0 border-t border-slate-100 flex items-center justify-between mt-2">
+                <button onclick="exportSingleCardImage(${item.id})" class="touch-btn text-xs font-bold text-sky-700 hover:text-sky-800 bg-sky-50 px-3 py-1.5 rounded-xl border border-sky-200 flex items-center gap-1">
+                    <i data-lucide="download" class="w-3.5 h-3.5"></i>
+                    <span>下載此卡片 (PNG)</span>
+                </button>
+                <button onclick="likeItem(${item.id})" class="touch-btn flex items-center gap-1.5 text-rose-500 bg-rose-50 px-3 py-1.5 rounded-xl border border-rose-200 text-xs font-bold">
+                    <i data-lucide="heart" class="w-4 h-4 fill-rose-500"></i>
+                    <span>${item.likes}</span>
+                </button>
+            </div>
+        `;
         grid.appendChild(card);
     });
 
     if (window.lucide) lucide.createIcons();
 }
 
-function likeItem(id, type) {
-    if (type === 'photo') {
-        const target = appState.works.find(w => w.id === id);
-        if (target) target.likes += 1;
-    } else {
-        const target = appState.reflections.find(r => r.id === id);
-        if (target) target.likes += 1;
+function likeItem(id) {
+    const target = appState.works.find(w => w.id === id);
+    if (target) {
+        target.likes += 1;
+        renderGallery();
     }
-    renderGallery();
 }
 
-function exportLearningRecordsCSV() {
-    let csvContent = "\uFEFF類別,組別,時間,規律類型/反思面向,內容敘事,地點/未來運用,點讚數\n";
+function exportGalleryAsImage() {
+    if (appState.works.length === 0) {
+        showToast("展示牆目前尚無作品可供匯出！", "alert-circle");
+        return;
+    }
 
-    appState.works.forEach(w => {
-        const row = [
-            "幾何照片",
-            `"${w.team}"`,
-            `"${w.time}"`,
-            `"${w.patternType}"`,
-            `"${w.narrative.replace(/"/g, '""')}"`,
-            `"${w.location}"`,
-            w.likes
-        ];
-        csvContent += row.join(",") + "\n";
-    });
+    const container = document.getElementById('gallery-export-container');
+    showToast("正在生成成果圖片，請稍候...", "image");
 
-    appState.reflections.forEach(r => {
-        const factsRow = ["4F反思", `"${r.team}"`, `"${r.time}"`, "Facts", `"${r.facts.replace(/"/g, '""')}"`, "", r.likes];
-        const feelingsRow = ["4F反思", `"${r.team}"`, `"${r.time}"`, "Feelings", `"${r.feelings.replace(/"/g, '""')}"`, "", ""];
-        const findingsRow = ["4F反思", `"${r.team}"`, `"${r.time}"`, "Findings", `"${r.findings.replace(/"/g, '""')}"`, "", ""];
-        const futureRow = ["4F反思", `"${r.team}"`, `"${r.time}"`, "Future", `"${r.future.replace(/"/g, '""')}"`, "", ""];
-        csvContent += factsRow.join(",") + "\n";
-        csvContent += feelingsRow.join(",") + "\n";
-        csvContent += findingsRow.join(",") + "\n";
-        csvContent += futureRow.join(",") + "\n";
-    });
-
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement("a");
-    const url = URL.createObjectURL(blob);
-    link.setAttribute("href", url);
-    link.setAttribute("download", `校園規律獵人_學習歷程總表_${new Date().toISOString().slice(0, 10)}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    showToast("學習歷程 CSV 檔案已成功匯出！", "download");
+    if (window.html2canvas) {
+        html2canvas(container, {
+            backgroundColor: '#f1f5f9',
+            scale: 2,
+            useCORS: true,
+            allowTaint: true,
+            logging: false
+        }).then(canvas => {
+            const link = document.createElement('a');
+            link.download = `數感實驗室_校園規律獵人全班成果_${new Date().toISOString().slice(0, 10)}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+            showToast("全班成果圖片 (PNG) 匯出成功！", "check");
+        }).catch(err => {
+            console.error(err);
+            fallbackCanvasImageExport();
+        });
+    } else {
+        fallbackCanvasImageExport();
+    }
 }
 
+function exportSingleCardImage(id) {
+    const card = document.getElementById(`card-${id}`);
+    if (!card) return;
 
-// Modal utilities
+    showToast("正在準備單張成果卡圖檔...", "image");
+    if (window.html2canvas) {
+        html2canvas(card, {
+            backgroundColor: '#ffffff',
+            scale: 2,
+            useCORS: true,
+            allowTaint: true,
+            logging: false
+        }).then(canvas => {
+            const link = document.createElement('a');
+            const target = appState.works.find(w => w.id === id);
+            const teamName = target ? target.team : '獵人小組';
+            link.download = `校園規律獵人_${teamName}_成果卡.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+            showToast("單張成果卡圖檔 (PNG) 已下載！", "check");
+        }).catch(err => {
+            console.error(err);
+            showToast("匯出失敗，請檢查瀏覽器支援度", "alert-circle");
+        });
+    }
+}
+
+function fallbackCanvasImageExport() {
+    try {
+        const c = document.createElement('canvas');
+        c.width = 1000;
+        c.height = 300 + appState.works.length * 200;
+        const fallbackCtx = c.getContext('2d');
+
+        fallbackCtx.fillStyle = '#f8fafc';
+        fallbackCtx.fillRect(0, 0, c.width, c.height);
+
+        fallbackCtx.fillStyle = '#059669';
+        fallbackCtx.font = 'bold 32px sans-serif';
+        fallbackCtx.fillText('數感實驗室 | 校園規律獵人 學習成果總表', 40, 60);
+
+        fallbackCtx.fillStyle = '#64748b';
+        fallbackCtx.font = 'bold 16px sans-serif';
+        fallbackCtx.fillText(`匯出時間：${new Date().toLocaleString()} | 收錄作品數：${appState.works.length}`, 40, 100);
+
+        appState.works.forEach((w, idx) => {
+            const y = 140 + idx * 180;
+            fallbackCtx.fillStyle = '#ffffff';
+            fallbackCtx.strokeStyle = '#cbd5e1';
+            fallbackCtx.lineWidth = 2;
+            fallbackCtx.fillRect(40, y, 920, 160);
+            fallbackCtx.strokeRect(40, y, 920, 160);
+
+            fallbackCtx.fillStyle = '#0f172a';
+            fallbackCtx.font = 'bold 18px sans-serif';
+            fallbackCtx.fillText(`【${w.team}】 ${w.patternType} (地點: ${w.location})`, 60, y + 35);
+
+            fallbackCtx.font = '14px sans-serif';
+            fallbackCtx.fillStyle = '#047857';
+            fallbackCtx.fillText(`[Facts] ${w.facts.slice(0, 50)}...`, 60, y + 65);
+
+            fallbackCtx.fillStyle = '#b45309';
+            fallbackCtx.fillText(`[Feelings] ${w.feelings.slice(0, 50)}...`, 60, y + 90);
+
+            fallbackCtx.fillStyle = '#0369a1';
+            fallbackCtx.fillText(`[Findings] ${w.findings.slice(0, 50)}...`, 60, y + 115);
+
+            fallbackCtx.fillStyle = '#4338ca';
+            fallbackCtx.fillText(`[Future] ${w.future.slice(0, 50)}...`, 60, y + 140);
+        });
+
+        const link = document.createElement('a');
+        link.download = `數感實驗室_校園規律獵人成果_${new Date().toISOString().slice(0, 10)}.png`;
+        link.href = c.toDataURL('image/png');
+        link.click();
+        showToast("成果圖片已成功匯出 (備援模式)！", "check");
+    } catch (e) {
+        showToast("圖片匯出遭遇限制，請截圖保存", "alert-circle");
+    }
+}
+
+function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/[&<>'"]/g, tag => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        "'": '&#39;',
+        '"': '&quot;'
+    }[tag] || tag));
+}
+
 function openModal(id) {
     const el = document.getElementById(id);
     if (el) el.classList.remove('hidden');
@@ -1186,14 +1251,14 @@ function closeModal(id) {
     if (el) el.classList.add('hidden');
 }
 
-// Generate QR Code
 function generateQRCode() {
     const container = document.getElementById('qrcode-container');
     if (!container) return;
     container.innerHTML = "";
+    const rawUrl = (window.location.href && window.location.href !== 'about:blank') ? window.location.href : 'https://math-sense.edu.tw';
     try {
         new QRCode(container, {
-            text: window.location.href,
+            text: rawUrl,
             width: 170,
             height: 170,
             colorDark: "#065f46",
@@ -1201,13 +1266,12 @@ function generateQRCode() {
             correctLevel: QRCode.CorrectLevel.M
         });
     } catch (e) {
-        container.innerText = window.location.href;
+        container.innerText = rawUrl;
     }
 }
 
-// Copy URL
 function copyCurrentUrl() {
-    const text = window.location.href;
+    const text = (window.location.href && window.location.href !== 'about:blank') ? window.location.href : window.location.host;
     const btnText = document.getElementById('copy-btn-text');
     if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(text).then(() => {
@@ -1233,29 +1297,44 @@ function fallbackCopy(text) {
     showToast("網址已成功複製到剪貼簿", "check");
 }
 
-// Fullscreen toggle
+function isFullscreenActive() {
+    return !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement);
+}
+
+function updateFullscreenIcon(isFs) {
+    const wrapper = document.getElementById('icon-fs-wrapper');
+    if (!wrapper) return;
+    wrapper.innerHTML = isFs 
+        ? '<i data-lucide="minimize" class="w-6 h-6 stroke-[2.5]"></i>'
+        : '<i data-lucide="maximize" class="w-6 h-6 stroke-[2.5]"></i>';
+    if (window.lucide) lucide.createIcons();
+}
+
 function toggleFullscreen() {
-    const icon = document.getElementById('icon-fullscreen');
-    if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen().then(() => {
-            if (icon) icon.setAttribute('data-lucide', 'minimize');
-            if (window.lucide) lucide.createIcons();
-            showToast("已切換為全螢幕模式", "maximize");
-        }).catch(() => {
-            showToast("您的瀏覽器限制全螢幕操作", "alert-circle");
-        });
+    const docEl = document.documentElement;
+    if (!isFullscreenActive()) {
+        const req = docEl.requestFullscreen || docEl.webkitRequestFullscreen || docEl.mozRequestFullScreen || docEl.msRequestFullscreen;
+        if (req) {
+            req.call(docEl).then(() => {
+                updateFullscreenIcon(true);
+                showToast("已切換為全螢幕模式", "maximize");
+            }).catch(() => {
+                showToast("瀏覽器限制全螢幕操作", "alert-circle");
+            });
+        } else {
+            showToast("您的裝置暫不支援全螢幕切換", "alert-circle");
+        }
     } else {
-        if (document.exitFullscreen) {
-            document.exitFullscreen().then(() => {
-                if (icon) icon.setAttribute('data-lucide', 'maximize');
-                if (window.lucide) lucide.createIcons();
+        const exit = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
+        if (exit) {
+            exit.call(document).then(() => {
+                updateFullscreenIcon(false);
                 showToast("已退出全螢幕模式", "minimize");
             });
         }
     }
 }
 
-// Toast notification
 let toastTimer = null;
 function showToast(msg, iconName = 'info') {
     const toast = document.getElementById('toast');
@@ -1279,9 +1358,7 @@ function showToast(msg, iconName = 'info') {
     }, 2400);
 }
 
-// Global Initialization
 window.addEventListener('DOMContentLoaded', () => {
-    // Top icon buttons
     const btnQr = document.getElementById('btn-qr');
     if (btnQr) btnQr.addEventListener('click', () => openModal('modal-qr'));
 
@@ -1291,7 +1368,6 @@ window.addEventListener('DOMContentLoaded', () => {
     const btnGuide = document.getElementById('btn-guide');
     if (btnGuide) btnGuide.addEventListener('click', () => openModal('modal-guide'));
 
-    // ESC to close modal
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
             closeModal('modal-qr');
@@ -1299,7 +1375,6 @@ window.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Close on backdrop click
     ['modal-qr', 'modal-guide'].forEach(id => {
         const el = document.getElementById(id);
         if (el) {
@@ -1309,16 +1384,13 @@ window.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Fullscreen change listener
-    document.addEventListener('fullscreenchange', () => {
-        const icon = document.getElementById('icon-fullscreen');
-        if (icon) {
-            icon.setAttribute('data-lucide', document.fullscreenElement ? 'minimize' : 'maximize');
-            if (window.lucide) lucide.createIcons();
-        }
+    const fsChangeEvents = ['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'MSFullscreenChange'];
+    fsChangeEvents.forEach(evt => {
+        document.addEventListener(evt, () => {
+            updateFullscreenIcon(isFullscreenActive());
+        });
     });
 
-    // Initialize Canvas & Icons
     initCanvas();
     if (window.lucide) lucide.createIcons();
 });
